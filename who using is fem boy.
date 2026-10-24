@@ -1,0 +1,713 @@
+-- ========================================================
+-- 🐱 KITTY DAY HUB — NEW MODERN UI 💕
+-- ========================================================
+if getgenv().KittyDayCleanup then
+    pcall(getgenv().KittyDayCleanup)
+end
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CoreGui = game:GetService("CoreGui")
+local LocalPlayer = Players.LocalPlayer
+
+local ParentGui = (pcall(function() return gethui() end) and gethui()) or CoreGui
+if ParentGui:FindFirstChild("KittyDayGui") then
+    ParentGui.KittyDayGui:Destroy()
+end
+
+local Connections, Tasks = {}, {}
+getgenv().KittyDayCleanup = function()
+    for _, conn in pairs(Connections) do if conn then conn:Disconnect() end end
+    for _, taskRef in pairs(Tasks) do if taskRef then pcall(task.cancel, taskRef) end end
+    table.clear(Connections)
+    table.clear(Tasks)
+    if ParentGui:FindFirstChild("KittyDayGui") then ParentGui.KittyDayGui:Destroy() end
+end
+
+local function makeDraggable(frame, handle)
+    handle = handle or frame
+    local dragging, dragStart, startPos = false, nil, nil
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+        end
+    end)
+    handle.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+
+-- สีใหม่
+local C = {
+    bg          = Color3.fromRGB(255, 245, 250),
+    card        = Color3.fromRGB(255, 255, 255),
+    header      = Color3.fromRGB(255, 140, 190),
+    accent      = Color3.fromRGB(255, 95, 165),
+    accentSoft  = Color3.fromRGB(255, 180, 210),
+    text        = Color3.fromRGB(70, 30, 50),
+    textLight   = Color3.fromRGB(255, 255, 255),
+    switchOff   = Color3.fromRGB(230, 200, 215),
+    switchOn    = Color3.fromRGB(255, 95, 165),
+}
+
+--------------------------------------------------------------------------------
+-- GUI หลัก
+--------------------------------------------------------------------------------
+local Gui = Instance.new("ScreenGui")
+Gui.Name = "KittyDayGui"
+Gui.ResetOnSpawn = false
+Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+Gui.DisplayOrder = 999
+Gui.Parent = ParentGui
+
+-- ไอคอนลอย
+local Icon = Instance.new("TextButton")
+Icon.Size = UDim2.new(0, 50, 0, 50)
+Icon.Position = UDim2.new(0, 18, 0.32, 0)
+Icon.BackgroundColor3 = C.accent
+Icon.Text = "🐱"
+Icon.TextSize = 22
+Icon.Font = Enum.Font.GothamBold
+Icon.TextColor3 = C.textLight
+Icon.AutoButtonColor = false
+Icon.Parent = Gui
+Instance.new("UICorner", Icon).CornerRadius = UDim.new(1, 0)
+Instance.new("UIStroke", Icon).Color = Color3.fromRGB(255,255,255)
+makeDraggable(Icon)
+
+-- หน้าต่างหลัก
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, 520, 0, 460)
+Main.Position = UDim2.new(0.5, -260, 0.5, -230)
+Main.BackgroundColor3 = C.bg
+Main.Parent = Gui
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 20)
+local mainStroke = Instance.new("UIStroke", Main)
+mainStroke.Thickness = 2
+mainStroke.Color = C.accentSoft
+
+-- Header
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1, 0, 0, 56)
+Header.BackgroundColor3 = C.header
+Header.Parent = Main
+Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 20)
+
+local HeaderBottom = Instance.new("Frame")
+HeaderBottom.Size = UDim2.new(1, 0, 0, 20)
+HeaderBottom.Position = UDim2.new(0, 0, 1, -20)
+HeaderBottom.BackgroundColor3 = C.header
+HeaderBottom.BorderSizePixel = 0
+HeaderBottom.Parent = Header
+
+makeDraggable(Main, Header)
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(0, 200, 1, 0)
+Title.Position = UDim2.new(0, 20, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "🐱 Kitty Day"
+Title.TextColor3 = C.textLight
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 20
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Header
+
+local Close = Instance.new("TextButton")
+Close.Size = UDim2.new(0, 32, 0, 32)
+Close.Position = UDim2.new(1, -44, 0.5, -16)
+Close.BackgroundColor3 = Color3.fromRGB(255, 90, 140)
+Close.Text = "×"
+Close.TextSize = 18
+Close.Font = Enum.Font.GothamBold
+Close.TextColor3 = C.textLight
+Close.AutoButtonColor = false
+Close.Parent = Header
+Instance.new("UICorner", Close).CornerRadius = UDim.new(1, 0)
+
+Close.MouseButton1Click:Connect(function() Main.Visible = false end)
+Icon.MouseButton1Click:Connect(function() Main.Visible = not Main.Visible end)
+
+--------------------------------------------------------------------------------
+-- แท็บแนวนอน (แบบใหม่)
+--------------------------------------------------------------------------------
+local TabBar = Instance.new("ScrollingFrame")
+TabBar.Size = UDim2.new(1, -24, 0, 42)
+TabBar.Position = UDim2.new(0, 12, 0, 64)
+TabBar.BackgroundTransparency = 1
+TabBar.ScrollBarThickness = 0
+TabBar.ScrollingDirection = Enum.ScrollingDirection.X
+TabBar.CanvasSize = UDim2.new(0, 0, 0, 0)
+TabBar.Parent = Main
+
+local TabLayout = Instance.new("UIListLayout")
+TabLayout.FillDirection = Enum.FillDirection.Horizontal
+TabLayout.Padding = UDim.new(0, 8)
+TabLayout.Parent = TabBar
+
+local Content = Instance.new("ScrollingFrame")
+Content.Size = UDim2.new(1, -24, 1, -120)
+Content.Position = UDim2.new(0, 12, 0, 114)
+Content.BackgroundTransparency = 1
+Content.ScrollBarThickness = 3
+Content.ScrollBarImageColor3 = C.accent
+Content.Parent = Main
+
+local ContentLayout = Instance.new("UIListLayout")
+ContentLayout.Padding = UDim.new(0, 10)
+ContentLayout.Parent = Content
+ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    Content.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 16)
+end)
+
+local Pages = {}
+local CurrentPage = nil
+
+local function createPage(name)
+    local page = Instance.new("Frame")
+    page.Size = UDim2.new(1, 0, 0, 0)
+    page.AutomaticSize = Enum.AutomaticSize.Y
+    page.BackgroundTransparency = 1
+    page.Visible = false
+    page.Parent = Content
+
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 10)
+    layout.Parent = page
+
+    Pages[name] = page
+    return page
+end
+
+local function switchPage(name)
+    for n, p in pairs(Pages) do
+        p.Visible = (n == name)
+    end
+    CurrentPage = name
+    -- อัปเดตสีแท็บ
+    for _, child in ipairs(TabBar:GetChildren()) do
+        if child:IsA("TextButton") then
+            if child.Name == name then
+                child.BackgroundColor3 = C.accent
+                child.TextColor3 = C.textLight
+            else
+                child.BackgroundColor3 = C.card
+                child.TextColor3 = C.text
+            end
+        end
+    end
+end
+
+local function addTab(name, emoji)
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Size = UDim2.new(0, 90, 0, 36)
+    btn.BackgroundColor3 = C.card
+    btn.Text = emoji .. " " .. name
+    btn.TextColor3 = C.text
+    btn.Font = Enum.Font.GothamMedium
+    btn.TextSize = 13
+    btn.AutoButtonColor = false
+    btn.Parent = TabBar
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
+
+    btn.MouseButton1Click:Connect(function()
+        switchPage(name)
+    end)
+
+    TabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        TabBar.CanvasSize = UDim2.new(0, TabLayout.AbsoluteContentSize.X + 10, 0, 0)
+    end)
+
+    return createPage(name)
+end
+
+--------------------------------------------------------------------------------
+-- สวิตช์ On/Off แบบใหม่
+--------------------------------------------------------------------------------
+local function addSwitch(parent, title, default, callback)
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(1, 0, 0, 52)
+    card.BackgroundColor3 = C.card
+    card.Parent = parent
+    Instance.new("UICorner", card).CornerRadius = UDim.new(0, 14)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -80, 1, 0)
+    label.Position = UDim2.new(0, 16, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = title
+    label.TextColor3 = C.text
+    label.Font = Enum.Font.GothamMedium
+    label.TextSize = 14
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = card
+
+    local track = Instance.new("TextButton")
+    track.Size = UDim2.new(0, 48, 0, 28)
+    track.Position = UDim2.new(1, -64, 0.5, -14)
+    track.BackgroundColor3 = default and C.switchOn or C.switchOff
+    track.Text = ""
+    track.AutoButtonColor = false
+    track.Parent = card
+    Instance.new("UICorner", track).CornerRadius = UDim.new(1, 0)
+
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0, 22, 0, 22)
+    knob.Position = default and UDim2.new(1, -25, 0.5, -11) or UDim2.new(0, 3, 0.5, -11)
+    knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    knob.Parent = track
+    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
+    local state = default
+    track.MouseButton1Click:Connect(function()
+        state = not state
+        TweenService:Create(track, TweenInfo.new(0.2), {
+            BackgroundColor3 = state and C.switchOn or C.switchOff
+        }):Play()
+        TweenService:Create(knob, TweenInfo.new(0.2), {
+            Position = state and UDim2.new(1, -25, 0.5, -11) or UDim2.new(0, 3, 0.5, -11)
+        }):Play()
+        callback(state)
+    end)
+end
+
+-- ปุ่มกดแบบใหม่ (ใช้เฉพาะตอนจำเป็น)
+local function addAction(parent, title, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 46)
+    btn.BackgroundColor3 = C.accent
+    btn.Text = title
+    btn.TextColor3 = C.textLight
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 14
+    btn.AutoButtonColor = false
+    btn.Parent = parent
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 14)
+
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(255, 120, 180)}):Play()
+    end)
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = C.accent}):Play()
+    end)
+
+    btn.MouseButton1Click:Connect(function()
+        callback(btn)
+    end)
+    return btn
+end
+
+-- สไลด์เดอร์แบบใหม่
+local function addSlider(parent, title, minV, maxV, default, callback)
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(1, 0, 0, 70)
+    card.BackgroundColor3 = C.card
+    card.Parent = parent
+    Instance.new("UICorner", card).CornerRadius = UDim.new(0, 14)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -20, 0, 22)
+    label.Position = UDim2.new(0, 16, 0, 8)
+    label.BackgroundTransparency = 1
+    label.Text = title .. "  •  " .. default
+    label.TextColor3 = C.text
+    label.Font = Enum.Font.GothamMedium
+    label.TextSize = 14
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = card
+
+    local track = Instance.new("TextButton")
+    track.Size = UDim2.new(1, -32, 0, 8)
+    track.Position = UDim2.new(0, 16, 0, 42)
+    track.BackgroundColor3 = C.switchOff
+    track.Text = ""
+    track.AutoButtonColor = false
+    track.Parent = card
+    Instance.new("UICorner", track).CornerRadius = UDim.new(1, 0)
+
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new((default - minV) / (maxV - minV), 0, 1, 0)
+    fill.BackgroundColor3 = C.accent
+    fill.Parent = track
+    Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
+
+    local dragging = false
+    local function update(input)
+        local pos = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+        local val = math.floor(minV + (maxV - minV) * pos)
+        fill.Size = UDim2.new(pos, 0, 1, 0)
+        label.Text = title .. "  •  " .. val
+        callback(val)
+    end
+
+    track.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            update(input)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            update(input)
+        end
+    end)
+end
+
+--------------------------------------------------------------------------------
+-- สร้างหน้า
+--------------------------------------------------------------------------------
+local PageMain   = addTab("หลัก", "💀")
+local PageEvent  = addTab("อีเวนต์", "🎉")
+local PageAuto   = addTab("อัตโนมัติ", "🔄")
+local PagePlayer = addTab("ผู้เล่น", "🚗")
+local PageInfo   = addTab("ข้อมูล", "ℹ️")
+
+switchPage("หลัก") -- เปิดหน้าแรก
+
+--------------------------------------------------------------------------------
+-- หน้า หลัก
+--------------------------------------------------------------------------------
+local targetDupeItems = {
+    ["SnowFlakes"] = true, ["IgnitionFlame"] = true, ["UnknownSoul"] = true,
+    ["KnownSoul"] = true, ["BurnedBone"] = true, ["Imposta"] = true,
+    ["StrangeBar"] = true, ["NullBlock"] = true, ["GoldenApple"] = true,
+    ["LegendaryEnergy"] = true
+}
+
+addAction(PageMain, "💥 ฟลิง Rakoof", function(btn)
+    pcall(function()
+        local char = LocalPlayer.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if not hrp then
+            btn.Text = "❌ ไม่พบตัวละคร"
+            task.delay(1.2, function() btn.Text = "💥 ฟลิง Rakoof" end)
+            return
+        end
+        local rakeModel
+        for _, m in pairs(Workspace:GetDescendants()) do
+            if m:IsA("Model") and (m.Name:lower():find("rake") or m.Name:lower():find("rakoof")) then
+                if m:FindFirstChild("HumanoidRootPart") or m:FindFirstChild("Head") or m:FindFirstChildWhichIsA("BasePart") then
+                    rakeModel = m break
+                end
+            end
+        end
+        if rakeModel then
+            local part = rakeModel:FindFirstChild("HumanoidRootPart") or rakeModel:FindFirstChild("Head") or rakeModel:FindFirstChildWhichIsA("BasePart")
+            if part then
+                btn.Text = "⚡ กำลังฟลิง..."
+                local bfv = Instance.new("BodyAngularVelocity")
+                bfv.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+                bfv.AngularVelocity = Vector3.new(0, 99999, 0)
+                bfv.Parent = hrp
+                local orig = hrp.CFrame
+                for i = 1, 20 do
+                    hrp.CFrame = part.CFrame
+                    task.wait(0.02)
+                end
+                bfv:Destroy()
+                hrp.CFrame = orig
+                btn.Text = "✅ สำเร็จ!"
+            end
+        else
+            btn.Text = "❌ ไม่พบ Rakoof"
+        end
+        task.delay(1.2, function() btn.Text = "💥 ฟลิง Rakoof" end)
+    end)
+end)
+
+addAction(PageMain, "📦 ดูปไอเท็ม (x1)", function(btn)
+    pcall(function()
+        local backpack = LocalPlayer:FindFirstChild("Backpack")
+        local char = LocalPlayer.Character
+        local item
+        if char then
+            for _, v in ipairs(char:GetChildren()) do
+                if v:IsA("Tool") and targetDupeItems[v.Name] then item = v break end
+            end
+        end
+        if not item and backpack then
+            for _, v in ipairs(backpack:GetChildren()) do
+                if v:IsA("Tool") and targetDupeItems[v.Name] then item = v break end
+            end
+        end
+        if item and backpack then
+            item:Clone().Parent = backpack
+            btn.Text = "✅ ดูปแล้ว!"
+        else
+            btn.Text = "❌ ไม่มีไอเท็ม"
+        end
+        task.delay(1.2, function() btn.Text = "📦 ดูปไอเท็ม (x1)" end)
+    end)
+end)
+
+addAction(PageMain, "🗑️ ลบไอเท็มที่ดูป", function(btn)
+    pcall(function()
+        local count = 0
+        local function wipe(container)
+            if not container then return end
+            for _, v in ipairs(container:GetChildren()) do
+                if v:IsA("Tool") and targetDupeItems[v.Name] then
+                    v:Destroy()
+                    count += 1
+                end
+            end
+        end
+        wipe(LocalPlayer:FindFirstChild("Backpack"))
+        wipe(LocalPlayer.Character)
+        btn.Text = "🗑️ ลบแล้ว " .. count .. " ชิ้น"
+        task.delay(1.2, function() btn.Text = "🗑️ ลบไอเท็มที่ดูป" end)
+    end)
+end)
+
+local autoKill = false
+addSwitch(PageMain, "⚡ ลูปฆ่าอัตโนมัติ", false, function(state)
+    autoKill = state
+end)
+
+-- ลูปฆ่า (เบาลง)
+task.spawn(function()
+    while true do
+        if autoKill then
+            local char = LocalPlayer.Character
+            local tool = char and char:FindFirstChildOfClass("Tool") or (LocalPlayer.Backpack and LocalPlayer.Backpack:FindFirstChildOfClass("Tool"))
+            local remote = tool and (tool:FindFirstChild("InflictTarget", true) or ReplicatedStorage:FindFirstChild("InflictTarget", true))
+            if remote then
+                for _, obj in ipairs(Workspace:GetDescendants()) do
+                    if obj:IsA("Model") and obj ~= char then
+                        local hum = obj:FindFirstChildOfClass("Humanoid")
+                        local part = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChild("Head")
+                        if hum and part and hum.Health > 0 and not Players:GetPlayerFromCharacter(obj) then
+                            pcall(function() remote:FireServer(hum, part) end)
+                        end
+                    end
+                end
+            end
+            task.wait(0.4)
+        else
+            task.wait(0.4)
+        end
+    end
+end)
+
+--------------------------------------------------------------------------------
+-- หน้า อีเวนต์
+--------------------------------------------------------------------------------
+local celcius = false
+addSwitch(PageEvent, "🌡️ Celcius Starter", false, function(state)
+    celcius = state
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(0.3)
+        if celcius then
+            pcall(function()
+                local vals = Workspace:FindFirstChild("RakoofVals", true) or ReplicatedStorage:FindFirstChild("RakoofVals", true)
+                if vals and vals:FindFirstChild("CelciusReq") then
+                    for _, v in ipairs(vals.CelciusReq:GetChildren()) do
+                        if v:IsA("BoolValue") then v.Value = true end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+--------------------------------------------------------------------------------
+-- หน้า อัตโนมัติ
+--------------------------------------------------------------------------------
+local cooldownBypass = false
+addSwitch(PageAuto, "⚡ บายพาสคูลดาวน์", false, function(state)
+    cooldownBypass = state
+end)
+
+local candy = false
+addSwitch(PageAuto, "🍬 เก็บลูกอมอัตโนมัติ", false, function(state)
+    candy = state
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(0.15)
+        if cooldownBypass then
+            pcall(function()
+                local function check(item)
+                    if item:IsA("Tool") then
+                        local cd = item:FindFirstChild("Cooldown", true)
+                        if cd then
+                            if cd:IsA("NumberValue") or cd:IsA("IntValue") then cd.Value = 0 end
+                            if cd:IsA("BoolValue") then cd.Value = false end
+                        end
+                    end
+                end
+                if LocalPlayer.Character then for _, v in ipairs(LocalPlayer.Character:GetChildren()) do check(v) end end
+                if LocalPlayer.Backpack then for _, v in ipairs(LocalPlayer.Backpack:GetChildren()) do check(v) end end
+            end)
+        end
+        if candy then
+            pcall(function()
+                local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    for _, obj in ipairs(Workspace:GetDescendants()) do
+                        if obj.Name:lower():find("candy") then
+                            local part = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
+                            if part and typeof(firetouchinterest) == "function" then
+                                firetouchinterest(hrp, part, 0)
+                                firetouchinterest(hrp, part, 1)
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+addAction(PageAuto, "🪙 ดึง OofCoins มาหาฉัน", function(btn)
+    pcall(function()
+        local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+        local count = 0
+        local folder = Workspace:FindFirstChild("Coins", true)
+        if folder then
+            for _, coin in ipairs(folder:GetDescendants()) do
+                if coin.Name:lower():find("coin") then
+                    local part = coin:IsA("BasePart") and coin or coin:FindFirstChildWhichIsA("BasePart")
+                    if part then
+                        part.CFrame = hrp.CFrame * CFrame.new(0, 1, 0)
+                        count += 1
+                    end
+                end
+            end
+        end
+        btn.Text = "✅ ดึงมา " .. count .. " เหรียญ"
+        task.delay(1.2, function() btn.Text = "🪙 ดึง OofCoins มาหาฉัน" end)
+    end)
+end)
+
+--------------------------------------------------------------------------------
+-- หน้า ผู้เล่น
+--------------------------------------------------------------------------------
+local speed = 16
+addSlider(PagePlayer, "ความเร็ว", 16, 200, 16, function(v) speed = v end)
+
+local jump = 50
+addSlider(PagePlayer, "พลังกระโดด", 50, 300, 50, function(v) jump = v end)
+
+RunService.Stepped:Connect(function()
+    pcall(function()
+        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.WalkSpeed = speed
+            hum.JumpPower = jump
+        end
+    end)
+end)
+
+local esp = false
+addSwitch(PagePlayer, "👁️ ESP ไฮไลท์", false, function(state)
+    esp = state
+    if not state then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p.Character and p.Character:FindFirstChild("KittyESP") then
+                p.Character.KittyESP:Destroy()
+            end
+        end
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    if not esp then return end
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and not p.Character:FindFirstChild("KittyESP") then
+            local h = Instance.new("Highlight")
+            h.Name = "KittyESP"
+            h.FillColor = Color3.fromRGB(255, 120, 180)
+            h.OutlineColor = Color3.fromRGB(255, 255, 255)
+            h.Parent = p.Character
+        end
+    end
+end)
+
+local noclip = false
+addSwitch(PagePlayer, "👻 โนคลิป", false, function(state)
+    noclip = state
+end)
+
+RunService.Stepped:Connect(function()
+    if noclip and LocalPlayer.Character then
+        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
+    end
+end)
+
+addAction(PagePlayer, "🌀 วาร์ปไปร้านค้า", function(btn)
+    pcall(function()
+        local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        local shop = Workspace:FindFirstChild("Shop") and Workspace.Shop:FindFirstChild("VendedorA")
+        if hrp and shop then
+            local part = shop:FindFirstChild("HumanoidRootPart") or shop:FindFirstChildWhichIsA("BasePart")
+            if part then
+                hrp.CFrame = part.CFrame * CFrame.new(0, 3, 3)
+                btn.Text = "✅ วาร์ปแล้ว"
+            end
+        else
+            btn.Text = "❌ ไม่พบร้าน"
+        end
+        task.delay(1.2, function() btn.Text = "🌀 วาร์ปไปร้านค้า" end)
+    end)
+end)
+
+--------------------------------------------------------------------------------
+-- หน้า ข้อมูล
+--------------------------------------------------------------------------------
+local infoCard = Instance.new("Frame")
+infoCard.Size = UDim2.new(1, 0, 0, 120)
+infoCard.BackgroundColor3 = C.card
+infoCard.Parent = PageInfo
+Instance.new("UICorner", infoCard).CornerRadius = UDim.new(0, 14)
+
+local infoText = Instance.new("TextLabel")
+infoText.Size = UDim2.new(1, -24, 1, -24)
+infoText.Position = UDim2.new(0, 12, 0, 12)
+infoText.BackgroundTransparency = 1
+infoText.Text = "🐱 Kitty Day Hub\n\nผู้ใช้: " .. LocalPlayer.Name .. "\nเวอร์ชัน: Modern UI\nธีม: ชมพูน่ารัก\nสถานะ: พร้อมใช้งาน 💕"
+infoText.TextColor3 = C.text
+infoText.Font = Enum.Font.GothamMedium
+infoText.TextSize = 14
+infoText.TextXAlignment = Enum.TextXAlignment.Left
+infoText.TextYAlignment = Enum.TextYAlignment.Top
+infoText.Parent = infoCard
+
+addAction(PageInfo, "📋 คัดลอกลิงก์ดิสคอร์ด", function(btn)
+    if setclipboard then
+        setclipboard("https://discord.gg/uU8KAaKbB")
+        btn.Text = "✅ คัดลอกแล้ว!"
+    else
+        btn.Text = "❌ ไม่รองรับ"
+    end
+    task.delay(1.2, function() btn.Text = "📋 คัดลอกลิงก์ดิสคอร์ด" end)
+end)
+
+print("✅ Kitty Day Modern UI โหลดสำเร็จ!")
