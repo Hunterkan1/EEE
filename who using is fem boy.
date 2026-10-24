@@ -1,5 +1,5 @@
 -- ========================================================
--- 🐱 KITTY DAY HUB — NEW MODERN UI 💕
+-- 🐱 who using is fem boy — NEW MODERN UI 💕
 -- ========================================================
 if getgenv().KittyDayCleanup then
     pcall(getgenv().KittyDayCleanup)
@@ -13,8 +13,8 @@ local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
-
 local ParentGui = (pcall(function() return gethui() end) and gethui()) or CoreGui
+
 if ParentGui:FindFirstChild("KittyDayGui") then
     ParentGui.KittyDayGui:Destroy()
 end
@@ -51,7 +51,7 @@ local function makeDraggable(frame, handle)
     end)
 end
 
--- สีใหม่
+-- New Colors
 local C = {
     bg          = Color3.fromRGB(255, 245, 250),
     card        = Color3.fromRGB(255, 255, 255),
@@ -65,7 +65,7 @@ local C = {
 }
 
 --------------------------------------------------------------------------------
--- GUI หลัก
+-- Main GUI
 --------------------------------------------------------------------------------
 local Gui = Instance.new("ScreenGui")
 Gui.Name = "KittyDayGui"
@@ -74,7 +74,7 @@ Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 Gui.DisplayOrder = 999
 Gui.Parent = ParentGui
 
--- ไอคอนลอย
+-- Floating Icon
 local Icon = Instance.new("TextButton")
 Icon.Size = UDim2.new(0, 50, 0, 50)
 Icon.Position = UDim2.new(0, 18, 0.32, 0)
@@ -89,13 +89,14 @@ Instance.new("UICorner", Icon).CornerRadius = UDim.new(1, 0)
 Instance.new("UIStroke", Icon).Color = Color3.fromRGB(255,255,255)
 makeDraggable(Icon)
 
--- หน้าต่างหลัก
+-- Main Window
 local Main = Instance.new("Frame")
 Main.Size = UDim2.new(0, 520, 0, 460)
 Main.Position = UDim2.new(0.5, -260, 0.5, -230)
 Main.BackgroundColor3 = C.bg
 Main.Parent = Gui
 Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 20)
+
 local mainStroke = Instance.new("UIStroke", Main)
 mainStroke.Thickness = 2
 mainStroke.Color = C.accentSoft
@@ -117,13 +118,13 @@ HeaderBottom.Parent = Header
 makeDraggable(Main, Header)
 
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(0, 200, 1, 0)
+Title.Size = UDim2.new(0, 280, 1, 0)
 Title.Position = UDim2.new(0, 20, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "🐱 Kitty Day"
+Title.Text = "🐱 who using is fem boy"
 Title.TextColor3 = C.textLight
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 20
+Title.TextSize = 18
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Header
 
@@ -143,7 +144,7 @@ Close.MouseButton1Click:Connect(function() Main.Visible = false end)
 Icon.MouseButton1Click:Connect(function() Main.Visible = not Main.Visible end)
 
 --------------------------------------------------------------------------------
--- แท็บแนวนอน (แบบใหม่)
+-- Horizontal Tabs (New Style)
 --------------------------------------------------------------------------------
 local TabBar = Instance.new("ScrollingFrame")
 TabBar.Size = UDim2.new(1, -24, 0, 42)
@@ -170,6 +171,7 @@ Content.Parent = Main
 local ContentLayout = Instance.new("UIListLayout")
 ContentLayout.Padding = UDim.new(0, 10)
 ContentLayout.Parent = Content
+
 ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     Content.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 16)
 end)
@@ -184,11 +186,9 @@ local function createPage(name)
     page.BackgroundTransparency = 1
     page.Visible = false
     page.Parent = Content
-
     local layout = Instance.new("UIListLayout")
     layout.Padding = UDim.new(0, 10)
     layout.Parent = page
-
     Pages[name] = page
     return page
 end
@@ -198,7 +198,7 @@ local function switchPage(name)
         p.Visible = (n == name)
     end
     CurrentPage = name
-    -- อัปเดตสีแท็บ
+    -- Update tab colors
     for _, child in ipairs(TabBar:GetChildren()) do
         if child:IsA("TextButton") then
             if child.Name == name then
@@ -224,20 +224,17 @@ local function addTab(name, emoji)
     btn.AutoButtonColor = false
     btn.Parent = TabBar
     Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
-
     btn.MouseButton1Click:Connect(function()
         switchPage(name)
     end)
-
     TabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         TabBar.CanvasSize = UDim2.new(0, TabLayout.AbsoluteContentSize.X + 10, 0, 0)
     end)
-
     return createPage(name)
 end
 
 --------------------------------------------------------------------------------
--- สวิตช์ On/Off แบบใหม่
+-- New Style On/Off Switch
 --------------------------------------------------------------------------------
 local function addSwitch(parent, title, default, callback)
     local card = Instance.new("Frame")
@@ -286,7 +283,7 @@ local function addSwitch(parent, title, default, callback)
     end)
 end
 
--- ปุ่มกดแบบใหม่ (ใช้เฉพาะตอนจำเป็น)
+-- New Style Action Button (use only when needed)
 local function addAction(parent, title, callback)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, 0, 0, 46)
@@ -305,14 +302,13 @@ local function addAction(parent, title, callback)
     btn.MouseLeave:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = C.accent}):Play()
     end)
-
     btn.MouseButton1Click:Connect(function()
         callback(btn)
     end)
     return btn
 end
 
--- สไลด์เดอร์แบบใหม่
+-- New Style Slider
 local function addSlider(parent, title, minV, maxV, default, callback)
     local card = Instance.new("Frame")
     card.Size = UDim2.new(1, 0, 0, 70)
@@ -374,18 +370,18 @@ local function addSlider(parent, title, minV, maxV, default, callback)
 end
 
 --------------------------------------------------------------------------------
--- สร้างหน้า
+-- Create Pages
 --------------------------------------------------------------------------------
-local PageMain   = addTab("หลัก", "💀")
-local PageEvent  = addTab("อีเวนต์", "🎉")
-local PageAuto   = addTab("อัตโนมัติ", "🔄")
-local PagePlayer = addTab("ผู้เล่น", "🚗")
-local PageInfo   = addTab("ข้อมูล", "ℹ️")
+local PageMain   = addTab("Main", "💀")
+local PageEvent  = addTab("Event", "🎉")
+local PageAuto   = addTab("Auto", "🔄")
+local PagePlayer = addTab("Player", "🚗")
+local PageInfo   = addTab("Info", "ℹ️")
 
-switchPage("หลัก") -- เปิดหน้าแรก
+switchPage("Main") -- Open first page
 
 --------------------------------------------------------------------------------
--- หน้า หลัก
+-- Main Page
 --------------------------------------------------------------------------------
 local targetDupeItems = {
     ["SnowFlakes"] = true, ["IgnitionFlame"] = true, ["UnknownSoul"] = true,
@@ -394,13 +390,13 @@ local targetDupeItems = {
     ["LegendaryEnergy"] = true
 }
 
-addAction(PageMain, "💥 ฟลิง Rakoof", function(btn)
+addAction(PageMain, "💥 Fling Rakoof", function(btn)
     pcall(function()
         local char = LocalPlayer.Character
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
         if not hrp then
-            btn.Text = "❌ ไม่พบตัวละคร"
-            task.delay(1.2, function() btn.Text = "💥 ฟลิง Rakoof" end)
+            btn.Text = "❌ Character not found"
+            task.delay(1.2, function() btn.Text = "💥 Fling Rakoof" end)
             return
         end
         local rakeModel
@@ -414,7 +410,7 @@ addAction(PageMain, "💥 ฟลิง Rakoof", function(btn)
         if rakeModel then
             local part = rakeModel:FindFirstChild("HumanoidRootPart") or rakeModel:FindFirstChild("Head") or rakeModel:FindFirstChildWhichIsA("BasePart")
             if part then
-                btn.Text = "⚡ กำลังฟลิง..."
+                btn.Text = "⚡ Flinging..."
                 local bfv = Instance.new("BodyAngularVelocity")
                 bfv.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
                 bfv.AngularVelocity = Vector3.new(0, 99999, 0)
@@ -426,16 +422,16 @@ addAction(PageMain, "💥 ฟลิง Rakoof", function(btn)
                 end
                 bfv:Destroy()
                 hrp.CFrame = orig
-                btn.Text = "✅ สำเร็จ!"
+                btn.Text = "✅ Success!"
             end
         else
-            btn.Text = "❌ ไม่พบ Rakoof"
+            btn.Text = "❌ Rakoof not found"
         end
-        task.delay(1.2, function() btn.Text = "💥 ฟลิง Rakoof" end)
+        task.delay(1.2, function() btn.Text = "💥 Fling Rakoof" end)
     end)
 end)
 
-addAction(PageMain, "📦 ดูปไอเท็ม (x1)", function(btn)
+addAction(PageMain, "📦 Dupe Item (x1)", function(btn)
     pcall(function()
         local backpack = LocalPlayer:FindFirstChild("Backpack")
         local char = LocalPlayer.Character
@@ -452,15 +448,15 @@ addAction(PageMain, "📦 ดูปไอเท็ม (x1)", function(btn)
         end
         if item and backpack then
             item:Clone().Parent = backpack
-            btn.Text = "✅ ดูปแล้ว!"
+            btn.Text = "✅ Duped!"
         else
-            btn.Text = "❌ ไม่มีไอเท็ม"
+            btn.Text = "❌ No item found"
         end
-        task.delay(1.2, function() btn.Text = "📦 ดูปไอเท็ม (x1)" end)
+        task.delay(1.2, function() btn.Text = "📦 Dupe Item (x1)" end)
     end)
 end)
 
-addAction(PageMain, "🗑️ ลบไอเท็มที่ดูป", function(btn)
+addAction(PageMain, "🗑️ Delete Duped Items", function(btn)
     pcall(function()
         local count = 0
         local function wipe(container)
@@ -474,17 +470,17 @@ addAction(PageMain, "🗑️ ลบไอเท็มที่ดูป", functi
         end
         wipe(LocalPlayer:FindFirstChild("Backpack"))
         wipe(LocalPlayer.Character)
-        btn.Text = "🗑️ ลบแล้ว " .. count .. " ชิ้น"
-        task.delay(1.2, function() btn.Text = "🗑️ ลบไอเท็มที่ดูป" end)
+        btn.Text = "🗑️ Deleted " .. count .. " items"
+        task.delay(1.2, function() btn.Text = "🗑️ Delete Duped Items" end)
     end)
 end)
 
 local autoKill = false
-addSwitch(PageMain, "⚡ ลูปฆ่าอัตโนมัติ", false, function(state)
+addSwitch(PageMain, "⚡ Auto Kill Loop", false, function(state)
     autoKill = state
 end)
 
--- ลูปฆ่า (เบาลง)
+-- Kill loop (lighter)
 task.spawn(function()
     while true do
         if autoKill then
@@ -510,7 +506,7 @@ task.spawn(function()
 end)
 
 --------------------------------------------------------------------------------
--- หน้า อีเวนต์
+-- Event Page
 --------------------------------------------------------------------------------
 local celcius = false
 addSwitch(PageEvent, "🌡️ Celcius Starter", false, function(state)
@@ -534,15 +530,15 @@ task.spawn(function()
 end)
 
 --------------------------------------------------------------------------------
--- หน้า อัตโนมัติ
+-- Auto Page
 --------------------------------------------------------------------------------
 local cooldownBypass = false
-addSwitch(PageAuto, "⚡ บายพาสคูลดาวน์", false, function(state)
+addSwitch(PageAuto, "⚡ Cooldown Bypass", false, function(state)
     cooldownBypass = state
 end)
 
 local candy = false
-addSwitch(PageAuto, "🍬 เก็บลูกอมอัตโนมัติ", false, function(state)
+addSwitch(PageAuto, "🍬 Auto Collect Candy", false, function(state)
     candy = state
 end)
 
@@ -583,7 +579,7 @@ task.spawn(function()
     end
 end)
 
-addAction(PageAuto, "🪙 ดึง OofCoins มาหาฉัน", function(btn)
+addAction(PageAuto, "🪙 Bring OofCoins to Me", function(btn)
     pcall(function()
         local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if not hrp then return end
@@ -600,19 +596,19 @@ addAction(PageAuto, "🪙 ดึง OofCoins มาหาฉัน", function(bt
                 end
             end
         end
-        btn.Text = "✅ ดึงมา " .. count .. " เหรียญ"
-        task.delay(1.2, function() btn.Text = "🪙 ดึง OofCoins มาหาฉัน" end)
+        btn.Text = "✅ Brought " .. count .. " coins"
+        task.delay(1.2, function() btn.Text = "🪙 Bring OofCoins to Me" end)
     end)
 end)
 
 --------------------------------------------------------------------------------
--- หน้า ผู้เล่น
+-- Player Page
 --------------------------------------------------------------------------------
 local speed = 16
-addSlider(PagePlayer, "ความเร็ว", 16, 200, 16, function(v) speed = v end)
+addSlider(PagePlayer, "Speed", 16, 200, 16, function(v) speed = v end)
 
 local jump = 50
-addSlider(PagePlayer, "พลังกระโดด", 50, 300, 50, function(v) jump = v end)
+addSlider(PagePlayer, "Jump Power", 50, 300, 50, function(v) jump = v end)
 
 RunService.Stepped:Connect(function()
     pcall(function()
@@ -625,7 +621,7 @@ RunService.Stepped:Connect(function()
 end)
 
 local esp = false
-addSwitch(PagePlayer, "👁️ ESP ไฮไลท์", false, function(state)
+addSwitch(PagePlayer, "👁️ ESP Highlight", false, function(state)
     esp = state
     if not state then
         for _, p in pairs(Players:GetPlayers()) do
@@ -650,7 +646,7 @@ RunService.Heartbeat:Connect(function()
 end)
 
 local noclip = false
-addSwitch(PagePlayer, "👻 โนคลิป", false, function(state)
+addSwitch(PagePlayer, "👻 Noclip", false, function(state)
     noclip = state
 end)
 
@@ -662,7 +658,7 @@ RunService.Stepped:Connect(function()
     end
 end)
 
-addAction(PagePlayer, "🌀 วาร์ปไปร้านค้า", function(btn)
+addAction(PagePlayer, "🌀 Teleport to Shop", function(btn)
     pcall(function()
         local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         local shop = Workspace:FindFirstChild("Shop") and Workspace.Shop:FindFirstChild("VendedorA")
@@ -670,17 +666,17 @@ addAction(PagePlayer, "🌀 วาร์ปไปร้านค้า", functio
             local part = shop:FindFirstChild("HumanoidRootPart") or shop:FindFirstChildWhichIsA("BasePart")
             if part then
                 hrp.CFrame = part.CFrame * CFrame.new(0, 3, 3)
-                btn.Text = "✅ วาร์ปแล้ว"
+                btn.Text = "✅ Teleported"
             end
         else
-            btn.Text = "❌ ไม่พบร้าน"
+            btn.Text = "❌ Shop not found"
         end
-        task.delay(1.2, function() btn.Text = "🌀 วาร์ปไปร้านค้า" end)
+        task.delay(1.2, function() btn.Text = "🌀 Teleport to Shop" end)
     end)
 end)
 
 --------------------------------------------------------------------------------
--- หน้า ข้อมูล
+-- Info Page
 --------------------------------------------------------------------------------
 local infoCard = Instance.new("Frame")
 infoCard.Size = UDim2.new(1, 0, 0, 120)
@@ -692,7 +688,7 @@ local infoText = Instance.new("TextLabel")
 infoText.Size = UDim2.new(1, -24, 1, -24)
 infoText.Position = UDim2.new(0, 12, 0, 12)
 infoText.BackgroundTransparency = 1
-infoText.Text = "🐱 Kitty Day Hub\n\nผู้ใช้: " .. LocalPlayer.Name .. "\nเวอร์ชัน: Modern UI\nธีม: ชมพูน่ารัก\nสถานะ: พร้อมใช้งาน 💕"
+infoText.Text = "🐱 who using is fem boy\n\nUser: " .. LocalPlayer.Name .. "\nVersion: Modern UI\nTheme: Cute Pink\nStatus: Ready 💕"
 infoText.TextColor3 = C.text
 infoText.Font = Enum.Font.GothamMedium
 infoText.TextSize = 14
@@ -700,14 +696,14 @@ infoText.TextXAlignment = Enum.TextXAlignment.Left
 infoText.TextYAlignment = Enum.TextYAlignment.Top
 infoText.Parent = infoCard
 
-addAction(PageInfo, "📋 คัดลอกลิงก์ดิสคอร์ด", function(btn)
+addAction(PageInfo, "📋 Copy Discord Link", function(btn)
     if setclipboard then
         setclipboard("https://discord.gg/uU8KAaKbB")
-        btn.Text = "✅ คัดลอกแล้ว!"
+        btn.Text = "✅ Copied!"
     else
-        btn.Text = "❌ ไม่รองรับ"
+        btn.Text = "❌ Not supported"
     end
-    task.delay(1.2, function() btn.Text = "📋 คัดลอกลิงก์ดิสคอร์ด" end)
+    task.delay(1.2, function() btn.Text = "📋 Copy Discord Link" end)
 end)
 
-print("✅ Kitty Day Modern UI โหลดสำเร็จ!")
+print("✅ who using is fem boy Modern UI loaded successfully!")
