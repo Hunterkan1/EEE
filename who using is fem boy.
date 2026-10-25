@@ -498,9 +498,9 @@ task.spawn(function()
                     end
                 end
             end
-            task.wait(0.03)
+            task.wait(0.007)
         else
-            task.wait(0.03)
+            task.wait(0.007)
         end
     end
 end)
