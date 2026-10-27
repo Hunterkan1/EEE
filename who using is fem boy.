@@ -144,7 +144,7 @@ Close.MouseButton1Click:Connect(function() Main.Visible = false end)
 Icon.MouseButton1Click:Connect(function() Main.Visible = not Main.Visible end)
 
 --------------------------------------------------------------------------------
--- Horizontal Tabs (New Style)
+-- Horizontal Tabs
 --------------------------------------------------------------------------------
 local TabBar = Instance.new("ScrollingFrame")
 TabBar.Size = UDim2.new(1, -24, 0, 42)
@@ -198,7 +198,6 @@ local function switchPage(name)
         p.Visible = (n == name)
     end
     CurrentPage = name
-    -- Update tab colors
     for _, child in ipairs(TabBar:GetChildren()) do
         if child:IsA("TextButton") then
             if child.Name == name then
@@ -234,7 +233,7 @@ local function addTab(name, emoji)
 end
 
 --------------------------------------------------------------------------------
--- New Style On/Off Switch
+-- UI Controls
 --------------------------------------------------------------------------------
 local function addSwitch(parent, title, default, callback)
     local card = Instance.new("Frame")
@@ -283,7 +282,6 @@ local function addSwitch(parent, title, default, callback)
     end)
 end
 
--- New Style Action Button (use only when needed)
 local function addAction(parent, title, callback)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, 0, 0, 46)
@@ -308,7 +306,6 @@ local function addAction(parent, title, callback)
     return btn
 end
 
--- New Style Slider
 local function addSlider(parent, title, minV, maxV, default, callback)
     local card = Instance.new("Frame")
     card.Size = UDim2.new(1, 0, 0, 70)
@@ -378,7 +375,7 @@ local PageAuto   = addTab("Auto", "🔄")
 local PagePlayer = addTab("Player", "🚗")
 local PageInfo   = addTab("Info", "ℹ️")
 
-switchPage("Main") -- Open first page
+switchPage("Main")
 
 --------------------------------------------------------------------------------
 -- Main Page
@@ -480,8 +477,7 @@ addSwitch(PageMain, "⚡ Auto Kill Loop", false, function(state)
     autoKill = state
 end)
 
--- Kill loop (lighter)
-task.spawn(function()
+table.insert(Tasks, task.spawn(function()
     while true do
         if autoKill then
             local char = LocalPlayer.Character
@@ -498,12 +494,12 @@ task.spawn(function()
                     end
                 end
             end
-            task.wait(0.001)
+            task.wait(0.000001)
         else
-            task.wait(0.001)
+            task.wait(0.000001)
         end
     end
-end)
+end))
 
 --------------------------------------------------------------------------------
 -- Event Page
@@ -513,7 +509,7 @@ addSwitch(PageEvent, "🌡️ Celcius Starter", false, function(state)
     celcius = state
 end)
 
-task.spawn(function()
+table.insert(Tasks, task.spawn(function()
     while true do
         task.wait(0.3)
         if celcius then
@@ -527,7 +523,7 @@ task.spawn(function()
             end)
         end
     end
-end)
+end))
 
 --------------------------------------------------------------------------------
 -- Auto Page
@@ -542,7 +538,12 @@ addSwitch(PageAuto, "🍬 Auto Collect Candy", false, function(state)
     candy = state
 end)
 
-task.spawn(function()
+local autoPickupActive = false
+addSwitch(PageAuto, "🌀 AUTO PICK-UP (DROPS)", false, function(state)
+    autoPickupActive = state
+end)
+
+table.insert(Tasks, task.spawn(function()
     while true do
         task.wait(0.15)
         if cooldownBypass then
@@ -577,7 +578,52 @@ task.spawn(function()
             end)
         end
     end
-end)
+end))
+
+table.insert(Tasks, task.spawn(function()
+    while true do
+        if autoPickupActive then
+            pcall(function()
+                local char = LocalPlayer.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local dropsFolder = Workspace:FindFirstChild("Drops") or Workspace:FindFirstChild("drops") or Workspace
+                    local itemsToScan = dropsFolder and dropsFolder:GetChildren() or Workspace:GetChildren()
+                    
+                    for _, obj in ipairs(itemsToScan) do
+                        if not autoPickupActive then break end
+                        if obj.Name:lower():find("drop") or obj.Name:lower():find("scrap") or obj.Name:lower():find("item") then
+                            if obj:IsA("BasePart") then
+                                if typeof(firetouchinterest) == "function" then
+                                    firetouchinterest(hrp, obj, 0)
+                                    firetouchinterest(hrp, obj, 1)
+                                else
+                                    obj.CFrame = hrp.CFrame
+                                end
+                            elseif obj:IsA("ProximityPrompt") then
+                                pcall(function() fireproximityprompt(obj) end)
+                            end
+                        end
+                    end
+                end
+            end)
+            task.wait(0.2)
+        else
+            task.wait(0.5)
+        end
+    end
+end))
+
+table.insert(Tasks, task.spawn(function()
+    while true do
+        task.wait(0.5)
+        pcall(function()
+            local targetsToDisable = { ["LamentUsed"] = true, ["EerieUsed"] = true, ["Immunity"] = true }
+            for _, obj in ipairs(Workspace:GetChildren()) do if targetsToDisable[obj.Name] and obj:IsA("BoolValue") and obj.Value == true then obj.Value = false end end
+            for _, obj in ipairs(ReplicatedStorage:GetChildren()) do if targetsToDisable[obj.Name] and obj:IsA("BoolValue") and obj.Value == true then obj.Value = false end end
+        end)
+    end
+end))
 
 addAction(PageAuto, "🪙 Bring OofCoins to Me", function(btn)
     pcall(function()
@@ -610,7 +656,7 @@ addSlider(PagePlayer, "Speed", 16, 200, 16, function(v) speed = v end)
 local jump = 50
 addSlider(PagePlayer, "Jump Power", 50, 300, 50, function(v) jump = v end)
 
-RunService.Stepped:Connect(function()
+table.insert(Connections, RunService.Stepped:Connect(function()
     pcall(function()
         local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
         if hum then
@@ -618,7 +664,7 @@ RunService.Stepped:Connect(function()
             hum.JumpPower = jump
         end
     end)
-end)
+end))
 
 local esp = false
 addSwitch(PagePlayer, "👁️ ESP Highlight", false, function(state)
@@ -632,7 +678,7 @@ addSwitch(PagePlayer, "👁️ ESP Highlight", false, function(state)
     end
 end)
 
-RunService.Heartbeat:Connect(function()
+table.insert(Connections, RunService.Heartbeat:Connect(function()
     if not esp then return end
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character and not p.Character:FindFirstChild("KittyESP") then
@@ -643,20 +689,20 @@ RunService.Heartbeat:Connect(function()
             h.Parent = p.Character
         end
     end
-end)
+end))
 
 local noclip = false
 addSwitch(PagePlayer, "👻 Noclip", false, function(state)
     noclip = state
 end)
 
-RunService.Stepped:Connect(function()
+table.insert(Connections, RunService.Stepped:Connect(function()
     if noclip and LocalPlayer.Character then
         for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
             if part:IsA("BasePart") then part.CanCollide = false end
         end
     end
-end)
+end))
 
 addAction(PagePlayer, "🌀 Teleport to Shop", function(btn)
     pcall(function()
